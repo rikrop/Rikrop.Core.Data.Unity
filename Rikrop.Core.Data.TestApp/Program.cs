@@ -1,7 +1,6 @@
 ﻿using System;
 using Microsoft.Practices.ObjectBuilder2;
 using Microsoft.Practices.Unity;
-using Rikrop.Core.Data.Repositories;
 using Rikrop.Core.Data.Repositories.Contracts;
 using Rikrop.Core.Data.Unity;
 
@@ -11,10 +10,9 @@ namespace Rikrop.Core.Data.TestApp
     {
         static void Main()
         {
-            var dbContext = new MyDbContext();
             var container = new UnityContainer();
 
-            container.RegisterType<IRepositoryContext, RepositoryContext>(new InjectionConstructor(new[] { dbContext }));
+            container.RegisterRepositoryContext<MyDbContext>();
 
             // Пример регистрации всех доступных в сборке репозиториев.
             container.RegisterRepositories(typeof(Department).Assembly);

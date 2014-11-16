@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Practices.Unity;
 using Rikrop.Core.Data.Entities;
 using Rikrop.Core.Data.Entities.Contracts;
+using Rikrop.Core.Data.Repositories;
 using Rikrop.Core.Data.Repositories.Contracts;
 using Rikrop.Core.Data.Unity.Attributes;
 using Rikrop.Core.Data.Unity.Repositories;
@@ -27,6 +29,32 @@ namespace Rikrop.Core.Data.Unity
         #region Открытые методы
 
         /// <summary>
+        /// Регистрация контекста БД для репозиториев.
+        /// </summary>
+        /// <typeparam name="TContext">Тип контекста БД.</typeparam>
+        /// <param name="container">Unity-container.</param>
+        public static void RegisterRepositoryContext<TContext>(this IUnityContainer container)
+            where TContext : DbContext, new()
+        {
+            container.RegisterType<IRepositoryContext, RepositoryContext>(new InjectionFactory(c => new RepositoryContext(new TContext())));
+        }
+
+        /// <summary>
+        /// Регистрация контекста БД для репозиториев.
+        /// </summary>
+        /// <typeparam name="TContext">Тип контекста БД.</typeparam>
+        /// <param name="container">Unity-container.</param>
+        /// <param name="contextConstructor">Конструктор контекста БД.</param>
+        /// <param name="connectionString">Имя строки подключения.</param>
+        public static void RegisterRepositoryContext<TContext>(this IUnityContainer container,
+            Func<string, TContext> contextConstructor, string connectionString)
+            where TContext : DbContext, new()
+        {
+            container.RegisterType<IRepositoryContext, RepositoryContext>(
+                new InjectionFactory(c => new RepositoryContext(contextConstructor(connectionString))));
+        }
+
+        /// <summary>
         /// Автоматическая генерация и регистрация всех расширенных репозриториев.
         /// </summary>
         /// <param name="container">Unity-container.</param>
@@ -41,7 +69,7 @@ namespace Rikrop.Core.Data.Unity
                     container.RegisterType(
                         repositoryAttribute.RepositoryInterfaceType, 
                         repositoryType,
-                        new ContainerControlledLifetimeManager());
+                        new TransientLifetimeManager());
                 }
             }
         }
@@ -85,8 +113,8 @@ namespace Rikrop.Core.Data.Unity
             var factoryGenerator = new RepositoryGenerator();
             var concreteFactoryType = factoryGenerator.Generate(repositoryInterfaceType);
             container.RegisterType(
-                repositoryInterfaceType, 
-                new ContainerControlledLifetimeManager(),
+                repositoryInterfaceType,
+                new TransientLifetimeManager(),
                 new InjectionFactory(
                     c =>
                     {
