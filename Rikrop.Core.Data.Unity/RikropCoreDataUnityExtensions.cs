@@ -48,7 +48,7 @@ namespace Rikrop.Core.Data.Unity
         /// <param name="connectionString">Имя строки подключения.</param>
         public static void RegisterRepositoryContext<TContext>(this IUnityContainer container,
             Func<string, TContext> contextConstructor, string connectionString)
-            where TContext : DbContext, new()
+            where TContext : DbContext
         {
             container.RegisterType<IRepositoryContext, RepositoryContext>(
                 new InjectionFactory(c => new RepositoryContext(contextConstructor(connectionString))));

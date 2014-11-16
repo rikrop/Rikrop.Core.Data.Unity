@@ -13,7 +13,7 @@ namespace Rikrop.Core.Data.TestApp
             var container = new UnityContainer();
 
             container.RegisterRepositoryContext<MyDbContext>();
-
+            container.RegisterRepositoryContext(s => new MyDbContext(s), "myConStr");
             // Пример регистрации всех доступных в сборке репозиториев.
             container.RegisterRepositories(typeof(Department).Assembly);
 
